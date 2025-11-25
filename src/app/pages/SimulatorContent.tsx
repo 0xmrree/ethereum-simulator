@@ -265,6 +265,7 @@ const SimulatorContentInner: React.FC = () => {
         <SimulatorSettingsModal
           onClose={() => setShowSettings(false)}
           onSave={handleSaveSettings}
+          nodeStates={nodeStates}
         />
       )}
     </div>

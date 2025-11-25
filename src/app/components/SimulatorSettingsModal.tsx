@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import 'react-tabs/style/react-tabs.css';
 import { SimulatorConfig } from '../../config/config';
+import { NodeState } from '../../types/types';
+import NetworkVisualization from './NetworkVisualization';
 import './SimulatorSettingsModal.css';
 
 interface SimulatorSettingsModalProps {
   onClose: () => void;
   onSave: (newConfig: typeof SimulatorConfig) => void;
+  nodeStates?: Record<string, NodeState>;
 }
 
-const SimulatorSettingsModal: React.FC<SimulatorSettingsModalProps> = ({ onClose, onSave }) => {
+const SimulatorSettingsModal: React.FC<SimulatorSettingsModalProps> = ({ onClose, onSave, nodeStates }) => {
   // Initialize state with current config values
   const [config, setConfig] = useState({ ...SimulatorConfig });
 
@@ -44,9 +49,17 @@ const SimulatorSettingsModal: React.FC<SimulatorSettingsModalProps> = ({ onClose
           <button className="settings-modal-close" onClick={onClose}>×</button>
         </div>
 
-        <div className="settings-modal-content">
-          {/* Issuance Parameters */}
-          <div className="settings-section">
+        <Tabs>
+          <TabList>
+            <Tab>Config</Tab>
+            <Tab>Network</Tab>
+          </TabList>
+
+          <TabPanel>
+            <div className="settings-modal-content">
+              <>
+              {/* Issuance Parameters */}
+              <div className="settings-section">
             <h3>Issuance Parameters</h3>
             <div className="settings-grid">
               <div className="setting-item">
@@ -256,7 +269,15 @@ const SimulatorSettingsModal: React.FC<SimulatorSettingsModalProps> = ({ onClose
               </div>
             </div>
           </div>
-        </div>
+              </>
+            </div>
+          </TabPanel>
+          
+          <TabPanel>
+            <NetworkVisualization nodeStates={nodeStates} />
+          </TabPanel>
+          
+        </Tabs>
 
         <div className="settings-modal-footer">
           <button className="settings-button settings-button-secondary" onClick={handleReset}>
