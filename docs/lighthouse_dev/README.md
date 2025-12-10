@@ -1,0 +1,1 @@
+This folder is for my Lighthouse beacon node development nodes (:)
