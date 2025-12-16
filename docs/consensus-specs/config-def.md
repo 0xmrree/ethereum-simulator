@@ -1,7 +1,5 @@
 # Ethereum Consensus Specs - Parameter Reference
 
-A concise reference guide for key Ethereum consensus parameters.
-
 ---
 
 ## Fork Choice Parameters
@@ -41,17 +39,3 @@ This defines the total number of attestation subnets in the Ethereum beacon chai
 ### ATTESTATION_SUBNET_EXTRA_BITS (0)
 
 This parameter is currently set to 0 in Phase 0 but exists for future extensibility. It controls how many extra bits of a node's NodeID are used when deterministically mapping nodes to their long-lived subnet subscriptions. Currently, 6 bits are sufficient to represent 64 subnets. If set higher in future forks, it would create more granular distribution of nodes across subnets, potentially improving load balancing in very large networks. This parameter serves as a tuning knob that can be adjusted based on network testing results.
-
----
-
-## Quick Reference Table
-
-| Parameter | Value | Purpose |
-|-----------|-------|---------|
-| PROPOSER_SCORE_BOOST | 40 | Temporary boost for new blocks (40% committee weight) |
-| REORG_HEAD_WEIGHT_THRESHOLD | 20 | Threshold for weak head (20% committee weight) |
-| REORG_PARENT_WEIGHT_THRESHOLD | 160 | Threshold for strong parent (160% committee weight) |
-| REORG_MAX_EPOCHS_SINCE_FINALIZATION | 2 | Max epochs since finalization to allow reorgs |
-| EPOCHS_PER_SUBNET_SUBSCRIPTION | 256 | Duration of subnet subscription (~27 hours) |
-| ATTESTATION_SUBNET_COUNT | 64 | Number of attestation gossip subnets |
-| ATTESTATION_SUBNET_EXTRA_BITS | 0 | Extra bits for subnet mapping (future use) |
