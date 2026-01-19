@@ -9,21 +9,20 @@ Note that if in a given period no blocks get 2/3 sync attestations, all light cl
 Gossip phase:
 Gossip phase is pretty easy to understand. Within a period you will basically have a current latest LMD GHOST head with sync committee  proof and the latest finalized header, and you will verify these as they come with your pub keys from the committee and the aggregate signatures via subscribing to topics. Then when you approach a sync period boundary you will request the same LightClientUpdate from sync phase, verify it, and update your local sync committee pub keys just like you did before, then repeat your logic for the gossip topics as new blocks come in. You want to maintain both local current LMD GHOST header and the finalized header so wallets and applications can use both depending on use cases. And of course this info is vital because you just take the execution world state root and find an RPC server soyou can verify with the EL's merkle proof. You don't have to trust the RPC, you just need to find one honest one.   (:
 
-
 # How Sync Aggregates Get Included in Blocks
 
-At each slot N, the sync committee (512 validators) creates signatures attesting to the block from slot N-1. These signatures are aggregated and included in the block for slot N+1.
+At each slot N, the sync committee (512 validators) creates signatures attesting to the current block (block N). These signatures are aggregated and included in the next block (block N+1).
 
 ## Timeline Within Slot N (12 second slot on mainnet)
 
 ### 0% (0s) - Block Proposed
 
 - The proposer for slot N broadcasts their block
-- This block contains the `SyncAggregate` for slot N-1's block (signatures created during slot N-1)
+- This block contains the `SyncAggregate` attesting to block N-1 (signatures created during slot N-1)
 
 ### ~33% (~4s) - Sync Committee Signs (`SYNC_MESSAGE_DUE_BPS = 3333`)
 
-- All 512 sync committee members (assigned to slot N+1) sign the `beacon_block_root` of slot N's block
+- All 512 sync committee members sign the `beacon_block_root` of slot N's block
 - Each member creates a `SyncCommitteeMessage` containing:
   - `slot`: current slot
   - `beacon_block_root`: the block root they're signing
@@ -44,16 +43,13 @@ At each slot N, the sync committee (512 validators) creates signatures attesting
   - `signature`: aggregated BLS signature of all collected signatures
 - Aggregators wrap this in a `SignedContributionAndProof` and broadcast to the global `sync_committee_contribution_and_proof` topic
 
-### 100% (12s) - End of Slot
+### Slot N+1, 0% (0s) - Next Block Proposed
 
 - The proposer for slot N+1 has collected contributions from the global topic
 - They select the best contribution per subnet (most participation bits)
 - They merge all 4 contributions into a single `SyncAggregate`:
   - `sync_committee_bits`: 512-bit bitvector of all participants across all subnets
   - `sync_committee_signature`: single aggregated BLS signature from all contributions
-
-### Slot N+1, 0% (0s) - Next Block Proposed
-
 - Block N+1 is proposed containing the `SyncAggregate` in `block.body.sync_aggregate`
 - This signature attests to block N's `beacon_block_root`
 
@@ -68,10 +64,6 @@ Slot N                                          Slot N+1
 Block N     Sync comm   Aggregators             Block N+1 proposed
 proposed    signs       broadcast               (contains SyncAggregate
             Block N     contributions            attesting to Block N)
-
-            ─────────────────────────────────────►
-              Signatures for Block N created here,
-              included in Block N+1
 ```
 
 ## Subnet Flow
