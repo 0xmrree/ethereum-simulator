@@ -1,0 +1,3 @@
+
+## XX Noise Encription Scheme
+Overall, XX Noise is an encryption scheme where each party has a static key and an ephemeral key. After the setup, both parties will have a shared secret to encrypt with, where only the two parties can talk to each other. In addition, this scheme is such that if you lose your static private key, only future messages are not secure, and if you lose your ephemeral private key, only that session is compromised. - to achive this there is this special function called Diffie-Hellman where you can have two parties share their public key and the both can caluate a shared secret that no third party could generate.
