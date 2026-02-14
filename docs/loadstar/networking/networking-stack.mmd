@@ -1,0 +1,81 @@
+graph TD
+    subgraph "Beacon Node Networking Stack"
+
+        Network["Network<br/>(facade)"]
+        NetworkCore["NetworkCore"]
+        Network --> NetworkCore
+
+        %% Worker infrastructure — DROP
+        WorkerNetworkCore["WorkerNetworkCore<br/>❌ DROP"]:::drop
+        AsyncIterableBridge["AsyncIterableBridge<br/>❌ DROP"]:::drop
+        Network -.-> WorkerNetworkCore
+        WorkerNetworkCore -.-> AsyncIterableBridge
+
+        %% Transport
+        libp2p["libp2p<br/>✅ KEEP<br/>(TCP, Noise, PeerId)"]:::keep
+        NetworkCore --> libp2p
+
+        %% Gossip
+        Eth2Gossipsub["Eth2Gossipsub<br/>✅ SIMPLIFY<br/>(2 topics, not 80+)"]:::simplify
+        NetworkCore --> Eth2Gossipsub
+        Eth2Gossipsub --> libp2p
+
+        NetworkProcessor["NetworkProcessor<br/>❌ DROP<br/>(validation queues)"]:::drop
+        Eth2Gossipsub -.-> NetworkProcessor
+        GossipHandlers["GossipHandlers<br/>❌ DROP<br/>(block/attestation handlers)"]:::drop
+        NetworkProcessor -.-> GossipHandlers
+
+        %% ReqResp
+        ReqRespBN["ReqRespBeaconNode<br/>✅ SIMPLIFY<br/>(requester only)"]:::simplify
+        NetworkCore --> ReqRespBN
+        ReqRespBase["@lodestar/reqresp<br/>✅ KEEP AS-IS"]:::keep
+        ReqRespBN --> ReqRespBase
+        ReqRespBase --> libp2p
+
+        Handlers["ReqResp Handlers<br/>❌ DROP<br/>(responder side)"]:::drop
+        ReqRespBN -.-> Handlers
+
+        Collectors["ReqResp Collectors<br/>✅ KEEP<br/>(collectExactOneTyped,<br/>collectMaxResponseTyped)"]:::keep
+        ReqRespBN --> Collectors
+
+        %% Peers
+        PeerManager["PeerManager<br/>✅ SIMPLIFY<br/>(10-30 peers, simple scoring)"]:::simplify
+        NetworkCore --> PeerManager
+
+        PeersData["PeersData<br/>✅ KEEP"]:::keep
+        PeerManager --> PeersData
+
+        PeerScoring["PeerRpcScoreStore<br/>✅ SIMPLIFY<br/>(no gossip scoring)"]:::simplify
+        PeerManager --> PeerScoring
+
+        PeerDiscovery["PeerDiscovery<br/>✅ SIMPLIFY<br/>(no subnet queries)"]:::simplify
+        PeerManager --> PeerDiscovery
+
+        Discv5["Discv5Worker<br/>✅ KEEP<br/>(always own thread)"]:::keep
+        PeerDiscovery --> Discv5
+
+        PrioritizePeers["prioritizePeers<br/>❌ DROP<br/>(subnet coverage)"]:::drop
+        PeerManager -.-> PrioritizePeers
+
+        %% Metadata
+        MetadataController["MetadataController<br/>✅ SIMPLIFY<br/>(no subnets in ENR)"]:::simplify
+        NetworkCore --> MetadataController
+
+        %% Subnets — DROP
+        AttnetsService["AttnetsService<br/>❌ DROP"]:::drop
+        SyncnetsService["SyncnetsService<br/>❌ DROP"]:::drop
+        NetworkCore -.-> AttnetsService
+        NetworkCore -.-> SyncnetsService
+
+        %% Events
+        NetworkEventBus["NetworkEventBus<br/>✅ KEEP"]:::keep
+        NetworkCore --> NetworkEventBus
+
+        %% Status
+        StatusCache["StatusCache<br/>✅ SIMPLIFY"]:::simplify
+        NetworkCore --> StatusCache
+    end
+
+    classDef keep fill:#d4edda,stroke:#28a745,color:#000
+    classDef simplify fill:#fff3cd,stroke:#ffc107,color:#000
+    classDef drop fill:#f8d7da,stroke:#dc3545,color:#000
